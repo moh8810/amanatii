@@ -1,0 +1,82 @@
+import { createFileRoute } from "@tanstack/react-router";
+
+import { SiteHeader } from "@/components/landing/SiteHeader";
+import { Hero } from "@/components/landing/Hero";
+import { TrackingSection } from "@/components/landing/TrackingSection";
+import { Services } from "@/components/landing/Services";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { Stats } from "@/components/landing/Stats";
+import { WhyAmanati } from "@/components/landing/WhyAmanati";
+import { CtaBanner } from "@/components/landing/CtaBanner";
+import { SiteFooter } from "@/components/landing/SiteFooter";
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      {
+        title: "أمانتي | الشحن وحفظ الأمانات في منصة واحدة",
+      },
+      {
+        name: "description",
+        content:
+          "أمانتي منصة يمنية تجمع خدمات الشحن السريع وحفظ الأمانات بأمان، مع تتبع واضح لشحنتك أو أمانتك في أي وقت.",
+      },
+      {
+        property: "og:title",
+        content:
+          "أمانتي | الشحن وحفظ الأمانات في منصة واحدة",
+      },
+      {
+        property: "og:description",
+        content:
+          "أمانتي منصة يمنية تجمع خدمات الشحن السريع وحفظ الأمانات بأمان، مع تتبع واضح لشحنتك أو أمانتك في أي وقت.",
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+    ],
+  }),
+  component: Index,
+});
+
+function Index() {
+  return (
+    <div
+      dir="rtl"
+      lang="ar"
+      className="min-h-screen bg-background"
+    >
+      <SiteHeader />
+
+      <main>
+        <Hero />
+
+        <TrackingSection
+          onTrack={(reference) => {
+            console.info(
+              "tracking request:",
+              reference,
+            );
+          }}
+        />
+
+        <Services />
+
+        <HowItWorks />
+
+        <Stats />
+
+        <WhyAmanati />
+
+        <CtaBanner />
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}
