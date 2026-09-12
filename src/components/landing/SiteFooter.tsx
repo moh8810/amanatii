@@ -4,7 +4,7 @@ import {
   SiInstagram,
   SiWhatsapp,
 } from "react-icons/si";
-import { AmanatiLogo } from "./AmanatiLogo";
+import { Logo } from "@/components/amanati/ui";
 
 const columns = [
   {
@@ -83,7 +83,9 @@ export function SiteFooter() {
       <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:gap-10 sm:px-6 sm:py-14 lg:grid-cols-[1.3fr_repeat(3,1fr)_auto] lg:px-8">
         {/* هوية أمانتي */}
         <div className="min-w-0 text-center lg:text-right">
-          <AmanatiLogo className="mx-auto h-12 w-auto sm:h-14 lg:mx-0" />
+          <div className="flex justify-center lg:justify-start">
+            <Logo size="md" />
+          </div>
 
           <p className="mx-auto mt-3 max-w-64 break-words text-xs leading-6 text-muted-foreground sm:mt-4 sm:text-sm sm:leading-7 lg:mx-0">
             أمانتك أولويتنا، وأمانك وعدنا.

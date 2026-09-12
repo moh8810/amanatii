@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { AmanatiLogo } from "./AmanatiLogo";
+import { Logo } from "@/components/amanati/ui";
 import { navLinks, actionRoutes } from "./navigation";
 
 export function SiteHeader() {
@@ -23,16 +23,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
-        <a
-          href="/#home"
-          onClick={(event) =>
-            handleNavigation(event, "/#home")
-          }
-          className="flex shrink-0 items-center"
-          aria-label="أمانتي"
-        >
-          <AmanatiLogo className="h-12 w-auto" />
-        </a>
+        <Logo size="md" />
 
         <nav className="hidden items-center gap-7 lg:flex">
           {navLinks.map((link) => (
