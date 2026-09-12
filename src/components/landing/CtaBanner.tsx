@@ -17,16 +17,16 @@ const contactItems = [
   {
     icon: Phone,
     title: "الهاتف",
-    value: "+967 735 507 142",
-    href: "tel:+967735507142",
+    value: "+967 784 440 148",
+    href: "tel:+967784440148",
     color: "#1877F2",
     iconType: "phone",
   },
   {
     icon: SiGmail,
     title: "البريد الإلكتروني",
-    value: "mohammedalrobasse1@gmail.com",
-    href: "mailto:mohammedalrobasse1@gmail.com",
+    value: "example@gmail.com",
+    href: "mailto:example@gmail.com",
     color: "#EA4335",
     iconType: "gmail",
   },
@@ -203,7 +203,7 @@ export function CtaBanner() {
 
             {/* واتساب الرئيسي */}
             <a
-              href="https://wa.me/967735507142"
+              href="https://wa.me/967784440148"
               target="_blank"
               rel="noreferrer"
               className="amanati-whatsapp group mx-auto mt-6 block w-full max-w-3xl rounded-xl border border-[#25D366]/25 bg-[#25D366]/[0.055] p-3.5 sm:mt-7 sm:p-5"
@@ -226,7 +226,7 @@ export function CtaBanner() {
                       dir="ltr"
                       className="mt-0.5 truncate text-xs font-semibold text-navy-foreground/65 sm:mt-1 sm:text-sm"
                     >
-                      +967 735 507 142
+                      +967 784 440 148
                     </p>
 
                     <p className="mt-0.5 break-words text-[10px] leading-5 text-navy-foreground/40 sm:text-[11px]">
@@ -395,7 +395,7 @@ export function CtaBanner() {
             {/* الأزرار */}
             <div className="mt-6 flex w-full flex-col items-stretch justify-center gap-2.5 sm:mt-7 sm:flex-row sm:items-center">
               <a
-                href="https://wa.me/967735507142"
+                href="https://wa.me/967784440148"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-5 py-3 text-xs font-extrabold text-white shadow-md shadow-[#25D366]/15 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#20bd5b] active:scale-[0.98] sm:w-auto sm:text-sm"
