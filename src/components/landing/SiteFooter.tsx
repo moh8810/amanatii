@@ -51,13 +51,13 @@ const socials = [
   {
     icon: SiWhatsapp,
     label: "واتساب",
-    href: "https://wa.me/967735507142",
+    href: "https://wa.me/967784440148",
     color: "#25D366",
   },
   {
     icon: Mail,
     label: "البريد الإلكتروني",
-    href: "mailto:mohammedalrobasse1@gmail.com",
+    href: "mailto:example@gmail.com",
     color: "#EA4335",
   },
 ];

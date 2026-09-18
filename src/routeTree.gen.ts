@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AmanatRouteImport } from './routes/amanat'
+import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MarketingRouteImport } from './routes/marketing'
 import { Route as MerchantRouteImport } from './routes/merchant'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -24,6 +26,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ShipmentsRouteImport } from './routes/shipments'
 import { Route as ShippingPolicyRouteImport } from './routes/shipping-policy'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAmanatRouteImport } from './routes/admin/amanat'
 import { Route as AdminCitiesRouteImport } from './routes/admin.cities'
@@ -31,8 +34,11 @@ import { Route as AdminMerchantsRouteImport } from './routes/admin/merchants'
 import { Route as AdminPickupPointsRouteImport } from './routes/admin.pickup-points'
 import { Route as AdminShipmentsRouteImport } from './routes/admin.shipments'
 import { Route as AmanatNewRouteImport } from './routes/amanat.new'
+import { Route as ChallengesBackupRouteImport } from './routes/challenges.backup'
+import { Route as ChallengesComingSoonRouteImport } from './routes/challenges/coming-soon'
 import { Route as MerchantIndexRouteImport } from './routes/merchant.index'
 import { Route as MerchantAmanatRouteImport } from './routes/merchant.amanat'
+import { Route as MerchantChallengesRouteImport } from './routes/merchant.challenges'
 import { Route as MerchantCustomersRouteImport } from './routes/merchant.customers'
 import { Route as MerchantLeaderboardRouteImport } from './routes/merchant.leaderboard'
 import { Route as MerchantMarketingRouteImport } from './routes/merchant.marketing'
@@ -63,6 +69,11 @@ const AmanatRoute = AmanatRouteImport.update({
   path: '/amanat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChallengesRoute = ChallengesRouteImport.update({
+  id: '/challenges',
+  path: '/challenges',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -81,6 +92,11 @@ const HelpRoute = HelpRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketingRoute = MarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MerchantRoute = MerchantRouteImport.update({
@@ -123,6 +139,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -158,6 +179,16 @@ const AmanatNewRoute = AmanatNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AmanatRoute,
 } as any)
+const ChallengesBackupRoute = ChallengesBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => ChallengesRoute,
+} as any)
+const ChallengesComingSoonRoute = ChallengesComingSoonRouteImport.update({
+  id: '/coming-soon',
+  path: '/coming-soon',
+  getParentRoute: () => ChallengesRoute,
+} as any)
 const MerchantIndexRoute = MerchantIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -166,6 +197,11 @@ const MerchantIndexRoute = MerchantIndexRouteImport.update({
 const MerchantAmanatRoute = MerchantAmanatRouteImport.update({
   id: '/amanat',
   path: '/amanat',
+  getParentRoute: () => MerchantRoute,
+} as any)
+const MerchantChallengesRoute = MerchantChallengesRouteImport.update({
+  id: '/challenges',
+  path: '/challenges',
   getParentRoute: () => MerchantRoute,
 } as any)
 const MerchantCustomersRoute = MerchantCustomersRouteImport.update({
@@ -244,10 +280,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin-login': typeof AdminLoginRoute
   '/amanat': typeof AmanatRouteWithChildren
+  '/challenges': typeof ChallengesRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/faq': typeof FaqRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
+  '/marketing': typeof MarketingRoute
   '/merchant': typeof MerchantRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/privacy': typeof PrivacyRoute
@@ -256,13 +294,17 @@ export interface FileRoutesByFullPath {
   '/shipments': typeof ShipmentsRouteWithChildren
   '/shipping-policy': typeof ShippingPolicyRoute
   '/terms': typeof TermsRoute
+  '/wallet': typeof WalletRoute
   '/admin/amanat': typeof AdminAmanatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/merchants': typeof AdminMerchantsRoute
   '/admin/pickup-points': typeof AdminPickupPointsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
   '/amanat/new': typeof AmanatNewRoute
+  '/challenges/backup': typeof ChallengesBackupRoute
+  '/challenges/coming-soon': typeof ChallengesComingSoonRoute
   '/merchant/amanat': typeof MerchantAmanatRouteWithChildren
+  '/merchant/challenges': typeof MerchantChallengesRoute
   '/merchant/customers': typeof MerchantCustomersRoute
   '/merchant/leaderboard': typeof MerchantLeaderboardRoute
   '/merchant/marketing': typeof MerchantMarketingRoute
@@ -284,10 +326,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin-login': typeof AdminLoginRoute
   '/amanat': typeof AmanatRouteWithChildren
+  '/challenges': typeof ChallengesRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/faq': typeof FaqRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
+  '/marketing': typeof MarketingRoute
   '/notifications': typeof NotificationsRoute
   '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
@@ -295,13 +339,17 @@ export interface FileRoutesByTo {
   '/shipments': typeof ShipmentsRouteWithChildren
   '/shipping-policy': typeof ShippingPolicyRoute
   '/terms': typeof TermsRoute
+  '/wallet': typeof WalletRoute
   '/admin/amanat': typeof AdminAmanatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/merchants': typeof AdminMerchantsRoute
   '/admin/pickup-points': typeof AdminPickupPointsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
   '/amanat/new': typeof AmanatNewRoute
+  '/challenges/backup': typeof ChallengesBackupRoute
+  '/challenges/coming-soon': typeof ChallengesComingSoonRoute
   '/merchant/amanat': typeof MerchantAmanatRouteWithChildren
+  '/merchant/challenges': typeof MerchantChallengesRoute
   '/merchant/customers': typeof MerchantCustomersRoute
   '/merchant/leaderboard': typeof MerchantLeaderboardRoute
   '/merchant/marketing': typeof MerchantMarketingRoute
@@ -324,10 +372,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin-login': typeof AdminLoginRoute
   '/amanat': typeof AmanatRouteWithChildren
+  '/challenges': typeof ChallengesRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/faq': typeof FaqRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
+  '/marketing': typeof MarketingRoute
   '/merchant': typeof MerchantRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/privacy': typeof PrivacyRoute
@@ -336,13 +386,17 @@ export interface FileRoutesById {
   '/shipments': typeof ShipmentsRouteWithChildren
   '/shipping-policy': typeof ShippingPolicyRoute
   '/terms': typeof TermsRoute
+  '/wallet': typeof WalletRoute
   '/admin/amanat': typeof AdminAmanatRoute
   '/admin/cities': typeof AdminCitiesRoute
   '/admin/merchants': typeof AdminMerchantsRoute
   '/admin/pickup-points': typeof AdminPickupPointsRoute
   '/admin/shipments': typeof AdminShipmentsRoute
   '/amanat/new': typeof AmanatNewRoute
+  '/challenges/backup': typeof ChallengesBackupRoute
+  '/challenges/coming-soon': typeof ChallengesComingSoonRoute
   '/merchant/amanat': typeof MerchantAmanatRouteWithChildren
+  '/merchant/challenges': typeof MerchantChallengesRoute
   '/merchant/customers': typeof MerchantCustomersRoute
   '/merchant/leaderboard': typeof MerchantLeaderboardRoute
   '/merchant/marketing': typeof MerchantMarketingRoute
@@ -366,10 +420,12 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-login'
     | '/amanat'
+    | '/challenges'
     | '/dashboard'
     | '/faq'
     | '/help'
     | '/login'
+    | '/marketing'
     | '/merchant'
     | '/notifications'
     | '/privacy'
@@ -378,13 +434,17 @@ export interface FileRouteTypes {
     | '/shipments'
     | '/shipping-policy'
     | '/terms'
+    | '/wallet'
     | '/admin/amanat'
     | '/admin/cities'
     | '/admin/merchants'
     | '/admin/pickup-points'
     | '/admin/shipments'
     | '/amanat/new'
+    | '/challenges/backup'
+    | '/challenges/coming-soon'
     | '/merchant/amanat'
+    | '/merchant/challenges'
     | '/merchant/customers'
     | '/merchant/leaderboard'
     | '/merchant/marketing'
@@ -406,10 +466,12 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-login'
     | '/amanat'
+    | '/challenges'
     | '/dashboard'
     | '/faq'
     | '/help'
     | '/login'
+    | '/marketing'
     | '/notifications'
     | '/privacy'
     | '/register'
@@ -417,13 +479,17 @@ export interface FileRouteTypes {
     | '/shipments'
     | '/shipping-policy'
     | '/terms'
+    | '/wallet'
     | '/admin/amanat'
     | '/admin/cities'
     | '/admin/merchants'
     | '/admin/pickup-points'
     | '/admin/shipments'
     | '/amanat/new'
+    | '/challenges/backup'
+    | '/challenges/coming-soon'
     | '/merchant/amanat'
+    | '/merchant/challenges'
     | '/merchant/customers'
     | '/merchant/leaderboard'
     | '/merchant/marketing'
@@ -445,10 +511,12 @@ export interface FileRouteTypes {
     | '/'
     | '/admin-login'
     | '/amanat'
+    | '/challenges'
     | '/dashboard'
     | '/faq'
     | '/help'
     | '/login'
+    | '/marketing'
     | '/merchant'
     | '/notifications'
     | '/privacy'
@@ -457,13 +525,17 @@ export interface FileRouteTypes {
     | '/shipments'
     | '/shipping-policy'
     | '/terms'
+    | '/wallet'
     | '/admin/amanat'
     | '/admin/cities'
     | '/admin/merchants'
     | '/admin/pickup-points'
     | '/admin/shipments'
     | '/amanat/new'
+    | '/challenges/backup'
+    | '/challenges/coming-soon'
     | '/merchant/amanat'
+    | '/merchant/challenges'
     | '/merchant/customers'
     | '/merchant/leaderboard'
     | '/merchant/marketing'
@@ -486,10 +558,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AmanatRoute: typeof AmanatRouteWithChildren
+  ChallengesRoute: typeof ChallengesRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   FaqRoute: typeof FaqRoute
   HelpRoute: typeof HelpRoute
   LoginRoute: typeof LoginRoute
+  MarketingRoute: typeof MarketingRoute
   MerchantRoute: typeof MerchantRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -498,6 +572,7 @@ export interface RootRouteChildren {
   ShipmentsRoute: typeof ShipmentsRouteWithChildren
   ShippingPolicyRoute: typeof ShippingPolicyRoute
   TermsRoute: typeof TermsRoute
+  WalletRoute: typeof WalletRoute
   AdminAmanatRoute: typeof AdminAmanatRoute
   AdminCitiesRoute: typeof AdminCitiesRoute
   AdminMerchantsRoute: typeof AdminMerchantsRoute
@@ -529,6 +604,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AmanatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/challenges': {
+      id: '/challenges'
+      path: '/challenges'
+      fullPath: '/challenges'
+      preLoaderRoute: typeof ChallengesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -555,6 +637,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketing': {
+      id: '/marketing'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof MarketingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/merchant': {
@@ -613,6 +702,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -662,6 +758,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AmanatNewRouteImport
       parentRoute: typeof AmanatRoute
     }
+    '/challenges/backup': {
+      id: '/challenges/backup'
+      path: '/backup'
+      fullPath: '/challenges/backup'
+      preLoaderRoute: typeof ChallengesBackupRouteImport
+      parentRoute: typeof ChallengesRoute
+    }
+    '/challenges/coming-soon': {
+      id: '/challenges/coming-soon'
+      path: '/coming-soon'
+      fullPath: '/challenges/coming-soon'
+      preLoaderRoute: typeof ChallengesComingSoonRouteImport
+      parentRoute: typeof ChallengesRoute
+    }
     '/merchant/': {
       id: '/merchant/'
       path: '/'
@@ -674,6 +784,13 @@ declare module '@tanstack/react-router' {
       path: '/amanat'
       fullPath: '/merchant/amanat'
       preLoaderRoute: typeof MerchantAmanatRouteImport
+      parentRoute: typeof MerchantRoute
+    }
+    '/merchant/challenges': {
+      id: '/merchant/challenges'
+      path: '/challenges'
+      fullPath: '/merchant/challenges'
+      preLoaderRoute: typeof MerchantChallengesRouteImport
       parentRoute: typeof MerchantRoute
     }
     '/merchant/customers': {
@@ -788,6 +905,20 @@ const AmanatRouteChildren: AmanatRouteChildren = {
 const AmanatRouteWithChildren =
   AmanatRoute._addFileChildren(AmanatRouteChildren)
 
+interface ChallengesRouteChildren {
+  ChallengesBackupRoute: typeof ChallengesBackupRoute
+  ChallengesComingSoonRoute: typeof ChallengesComingSoonRoute
+}
+
+const ChallengesRouteChildren: ChallengesRouteChildren = {
+  ChallengesBackupRoute: ChallengesBackupRoute,
+  ChallengesComingSoonRoute: ChallengesComingSoonRoute,
+}
+
+const ChallengesRouteWithChildren = ChallengesRoute._addFileChildren(
+  ChallengesRouteChildren,
+)
+
 interface MerchantAmanatRouteChildren {
   MerchantAmanatNewRoute: typeof MerchantAmanatNewRoute
 }
@@ -802,6 +933,7 @@ const MerchantAmanatRouteWithChildren = MerchantAmanatRoute._addFileChildren(
 
 interface MerchantRouteChildren {
   MerchantAmanatRoute: typeof MerchantAmanatRouteWithChildren
+  MerchantChallengesRoute: typeof MerchantChallengesRoute
   MerchantCustomersRoute: typeof MerchantCustomersRoute
   MerchantLeaderboardRoute: typeof MerchantLeaderboardRoute
   MerchantMarketingRoute: typeof MerchantMarketingRoute
@@ -819,6 +951,7 @@ interface MerchantRouteChildren {
 
 const MerchantRouteChildren: MerchantRouteChildren = {
   MerchantAmanatRoute: MerchantAmanatRouteWithChildren,
+  MerchantChallengesRoute: MerchantChallengesRoute,
   MerchantCustomersRoute: MerchantCustomersRoute,
   MerchantLeaderboardRoute: MerchantLeaderboardRoute,
   MerchantMarketingRoute: MerchantMarketingRoute,
@@ -854,10 +987,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminLoginRoute: AdminLoginRoute,
   AmanatRoute: AmanatRouteWithChildren,
+  ChallengesRoute: ChallengesRouteWithChildren,
   DashboardRoute: DashboardRoute,
   FaqRoute: FaqRoute,
   HelpRoute: HelpRoute,
   LoginRoute: LoginRoute,
+  MarketingRoute: MarketingRoute,
   MerchantRoute: MerchantRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
   PrivacyRoute: PrivacyRoute,
@@ -866,6 +1001,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShipmentsRoute: ShipmentsRouteWithChildren,
   ShippingPolicyRoute: ShippingPolicyRoute,
   TermsRoute: TermsRoute,
+  WalletRoute: WalletRoute,
   AdminAmanatRoute: AdminAmanatRoute,
   AdminCitiesRoute: AdminCitiesRoute,
   AdminMerchantsRoute: AdminMerchantsRoute,

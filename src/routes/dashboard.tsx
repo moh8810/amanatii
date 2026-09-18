@@ -1,19 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import {
-  LayoutDashboard,
-  Package,
-  ShieldCheck,
+  Activity,
+  ArrowLeft,
   Bell,
-  Settings,
+  BellRing,
+  CheckCircle2,
+  ChevronLeft,
+  HelpCircle,
+  Package,
   PackageCheck,
-  Plus,
+  RefreshCw,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  Trophy,
+  Truck,
+  WalletCards,
 } from "lucide-react";
 
 import { DashboardShell } from "@/components/amanati/DashboardShell";
 import {
   Card,
-  StatCard,
   StatusBadge,
   buttonClass,
 } from "@/components/amanati/ui";
@@ -22,13 +32,11 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      {
-        title: "لوحة العميل | أمانتي AMANATI",
-      },
+      { title: "لوحة العميل | أمانتي AMANATI" },
       {
         name: "description",
         content:
-          "تابع شحناتك وأماناتك وإشعاراتك من مكان واحد في أمانتي.",
+          "لوحة أمانتي لإدارة الشحنات والأمانات ومتابعة حالة الطلبات.",
       },
       {
         property: "og:title",
@@ -37,11 +45,10 @@ export const Route = createFileRoute("/dashboard")({
       {
         property: "og:description",
         content:
-          "شحناتك وأماناتك وإشعاراتك في مكان واحد.",
+          "إدارة شحناتك وأماناتك من مكان واحد.",
       },
     ],
   }),
-
   component: CustomerDashboard,
 });
 
@@ -70,34 +77,23 @@ type Notification = {
 };
 
 function CustomerDashboard() {
-  const [shipments, setShipments] = useState<Shipment[]>(
-    [],
-  );
-
+  const [shipments, setShipments] = useState<Shipment[]>([]);
   const [amanat, setAmanat] = useState<Amanat[]>([]);
-
   const [notifications, setNotifications] = useState<
     Notification[]
   >([]);
-
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
 
-  /*
-   * عدد الإشعارات غير المقروءة
-   */
-  const unreadNotifications =
-    notifications.filter(
-      (notification) =>
-        !notification.is_read,
-    ).length;
+  const unreadNotifications = notifications.filter(
+    (item) => !item.is_read,
+  ).length;
 
-  /*
-   * القائمة الجانبية
-   */
   const nav = [
     {
       label: "لوحة التحكم",
-      icon: LayoutDashboard,
+      icon: Activity,
       to: "/dashboard",
       active: true,
     },
@@ -112,10 +108,25 @@ function CustomerDashboard() {
       to: "/amanat",
     },
     {
+      label: "المحفظة والأرباح",
+      icon: WalletCards,
+      to: "/wallet",
+    },
+    {
+      label: "تحديات أمانتي",
+      icon: Trophy,
+      to: "/challenges/coming-soon",
+    },
+    {
       label: "الإشعارات",
       icon: Bell,
       to: "/notifications",
       badge: unreadNotifications,
+    },
+    {
+      label: "الدعم والمساعدة",
+      icon: HelpCircle,
+      to: "/help",
     },
     {
       label: "الإعدادات",
@@ -124,14 +135,125 @@ function CustomerDashboard() {
     },
   ];
 
+  async function loadDashboard(showRefresh = false) {
+    if (showRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    setError("");
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setLoading(false);
+      setRefreshing(false);
+      setError(
+        "تعذر العثور على حسابك. يرجى تسجيل الدخول من جديد.",
+      );
+      return;
+    }
+
+    const [
+      shipmentsResult,
+      amanatResult,
+      notificationsResult,
+    ] = await Promise.all([
+      supabase
+        .from("shipments")
+        .select(
+          `
+            id,
+            tracking_number,
+            receiver_name,
+            status,
+            created_at,
+            updated_at
+          `,
+        )
+        .eq("sender_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1000),
+
+      supabase
+        .from("amanat")
+        .select(
+          `
+            id,
+            reference_number,
+            status,
+            stored_at
+          `,
+        )
+        .eq("owner_id", user.id)
+        .order("stored_at", { ascending: false })
+        .limit(1000),
+
+      supabase
+        .from("notifications")
+        .select(
+          `
+            id,
+            title,
+            message,
+            is_read,
+            created_at
+          `,
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
+
+    if (shipmentsResult.error) {
+      console.error(
+        "SHIPMENTS ERROR:",
+        shipmentsResult.error,
+      );
+      setError("تعذر تحميل بيانات الشحنات.");
+    }
+
+    if (amanatResult.error) {
+      console.error(
+        "AMANAT ERROR:",
+        amanatResult.error,
+      );
+      setError("تعذر تحميل بيانات الأمانات.");
+    }
+
+    if (notificationsResult.error) {
+      console.error(
+        "NOTIFICATIONS ERROR:",
+        notificationsResult.error,
+      );
+      setError("تعذر تحميل الإشعارات.");
+    }
+
+    setShipments(
+      (shipmentsResult.data ?? []) as Shipment[],
+    );
+
+    setAmanat(
+      (amanatResult.data ?? []) as Amanat[],
+    );
+
+    setNotifications(
+      (notificationsResult.data ?? []) as Notification[],
+    );
+
+    setLoading(false);
+    setRefreshing(false);
+  }
+
   useEffect(() => {
     let notificationChannel:
-      ReturnType<typeof supabase.channel> | null =
-      null;
+      | ReturnType<typeof supabase.channel>
+      | null = null;
 
-    async function loadDashboard() {
-      setLoading(true);
-
+    async function initialize() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -141,125 +263,10 @@ function CustomerDashboard() {
         return;
       }
 
-      const [
-        shipmentsResult,
-        amanatResult,
-        notificationsResult,
-      ] = await Promise.all([
-        /*
-         * أحدث الشحنات
-         */
-        supabase
-          .from("shipments")
-          .select(
-            `
-              id,
-              tracking_number,
-              receiver_name,
-              status,
-              created_at,
-              updated_at
-            `,
-          )
-          .eq("sender_id", user.id)
-          .order("created_at", {
-            ascending: false,
-          })
-          .limit(3),
-
-        /*
-         * أحدث الأمانات
-         */
-        supabase
-          .from("amanat")
-          .select(
-            `
-              id,
-              reference_number,
-              status,
-              stored_at
-            `,
-          )
-          .eq("owner_id", user.id)
-          .order("stored_at", {
-            ascending: false,
-          })
-          .limit(3),
-
-        /*
-         * الإشعارات
-         */
-        supabase
-          .from("notifications")
-          .select(
-            `
-              id,
-              title,
-              message,
-              is_read,
-              created_at
-            `,
-          )
-          .eq("user_id", user.id)
-          .order("created_at", {
-            ascending: false,
-          })
-          .limit(5),
-      ]);
-
-      if (shipmentsResult.error) {
-        console.error(
-          "SHIPMENTS ERROR:",
-          shipmentsResult.error,
-        );
-      }
-
-      if (amanatResult.error) {
-        console.error(
-          "AMANAT ERROR:",
-          amanatResult.error,
-        );
-      }
-
-      if (notificationsResult.error) {
-        console.error(
-          "NOTIFICATIONS ERROR:",
-          notificationsResult.error,
-        );
-      }
-
-      setShipments(
-        (shipmentsResult.data ?? []) as Shipment[],
-      );
-
-      setAmanat(
-        (amanatResult.data ?? []) as Amanat[],
-      );
-
-      setNotifications(
-        (notificationsResult.data ??
-          []) as Notification[],
-      );
-
-      setLoading(false);
-
-      /*
-       * =====================================================
-       * Supabase Realtime
-       * =====================================================
-       *
-       * الاستماع للإشعارات الجديدة وتحديثاتها
-       * مباشرة بدون الحاجة إلى تحديث الصفحة.
-       */
+      await loadDashboard();
 
       notificationChannel = supabase
-        .channel(
-          `dashboard-notifications-${user.id}`,
-        )
-
-        /*
-         * إشعار جديد
-         */
+        .channel(`customer-dashboard-${user.id}`)
         .on(
           "postgres_changes",
           {
@@ -269,37 +276,26 @@ function CustomerDashboard() {
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
-            const newNotification =
+            const notification =
               payload.new as Notification;
 
             setNotifications((current) => {
-              /*
-               * منع تكرار نفس الإشعار
-               */
-              const exists = current.some(
-                (item) =>
-                  item.id ===
-                  newNotification.id,
-              );
-
-              if (exists) {
+              if (
+                current.some(
+                  (item) =>
+                    item.id === notification.id,
+                )
+              ) {
                 return current;
               }
 
-              /*
-               * إضافة الإشعار الجديد في البداية
-               */
               return [
-                newNotification,
+                notification,
                 ...current,
               ].slice(0, 5);
             });
           },
         )
-
-        /*
-         * تحديث إشعار موجود
-         */
         .on(
           "postgres_changes",
           {
@@ -309,33 +305,28 @@ function CustomerDashboard() {
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
-            const updatedNotification =
+            const notification =
               payload.new as Notification;
 
             setNotifications((current) =>
               current.map((item) =>
-                item.id ===
-                updatedNotification.id
-                  ? updatedNotification
+                item.id === notification.id
+                  ? notification
                   : item,
               ),
             );
           },
         )
-
         .subscribe((status) => {
           console.log(
-            "NOTIFICATIONS REALTIME:",
+            "CUSTOMER DASHBOARD REALTIME:",
             status,
           );
         });
     }
 
-    loadDashboard();
+    initialize();
 
-    /*
-     * تنظيف اتصال Realtime عند مغادرة الصفحة
-     */
     return () => {
       if (notificationChannel) {
         supabase.removeChannel(
@@ -345,445 +336,1016 @@ function CustomerDashboard() {
     };
   }, []);
 
-  const readyShipments = shipments.filter(
-    (shipment) =>
-      shipment.status === "ready" ||
-      shipment.status === "ready_for_pickup" ||
-      shipment.status === "جاهزة للاستلام",
-  ).length;
+  const stats = useMemo(() => {
+    const total = shipments.length;
+
+    const inTransit = shipments.filter(
+      (item) =>
+        item.status === "in_transit" ||
+        item.status === "قيد التوصيل",
+    ).length;
+
+    const ready = shipments.filter(
+      (item) =>
+        item.status === "ready" ||
+        item.status === "ready_for_pickup" ||
+        item.status === "جاهزة للاستلام",
+    ).length;
+
+    const completed = shipments.filter(
+      (item) =>
+        item.status === "delivered" ||
+        item.status === "received" ||
+        item.status === "تم التسليم" ||
+        item.status === "تم الاستلام",
+    ).length;
+
+    const pending = shipments.filter(
+      (item) =>
+        item.status === "pending" ||
+        item.status === "قيد المعالجة",
+    ).length;
+
+    const performance =
+      total === 0
+        ? 0
+        : Math.min(
+            100,
+            Math.round(
+              (completed / total) * 100,
+            ),
+          );
+
+    return {
+      total,
+      inTransit,
+      ready,
+      completed,
+      pending,
+      performance,
+    };
+  }, [shipments]);
+
+  const recentShipments = shipments.slice(0, 5);
+  const recentAmanat = amanat.slice(0, 3);
 
   return (
     <DashboardShell
-      title="مرحباً بك 👋"
-      subtitle="هذه نظرة سريعة على شحناتك وأماناتك."
+      title="لوحة العميل"
+      subtitle="إدارة شحناتك وأماناتك بسهولة."
       nav={nav}
-      actions={
-        <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
-          {/* إرسال شحنة */}
-          <Link
-            to="/shipments/new"
-            className={buttonClass(
-              "primary",
-              "md",
-            )}
-          >
-            <Plus className="size-4 shrink-0" />
-            إرسال شحنة
-          </Link>
-
-          {/* إرسال أمانة */}
-          <Link
-            to="/amanat/new"
-            className={buttonClass(
-              "secondary",
-              "md",
-            )}
-          >
-            <ShieldCheck className="size-4 shrink-0" />
-            إرسال أمانة
-          </Link>
-        </div>
-      }
     >
-      {/* =====================================================
-          الإحصائيات
-      ====================================================== */}
+      <div className="space-y-7 sm:space-y-8">
 
-      <div className="grid w-full min-w-0 gap-3 sm:grid-cols-3 sm:gap-4">
-        <StatCard
-          label="شحناتي"
-          value={
-            loading
-              ? "..."
-              : String(shipments.length)
-          }
-          icon={Package}
-          tone="navy"
-        />
+        {/* ================================================================== */}
+        {/* HERO                                                               */}
+        {/* ================================================================== */}
 
-        <StatCard
-          label="أماناتي"
-          value={
-            loading
-              ? "..."
-              : String(amanat.length)
-          }
-          icon={ShieldCheck}
-          tone="teal"
-        />
+        <section className="relative isolate overflow-hidden rounded-[2rem] border border-primary/10 bg-gradient-to-br from-primary/[0.09] via-card to-secondary/[0.09] p-5 shadow-soft sm:p-7 lg:p-8">
 
-        <StatCard
-          label="جاهزة للاستلام"
-          value={
-            loading
-              ? "..."
-              : String(readyShipments)
-          }
-          icon={PackageCheck}
-          tone="amber"
-        />
-      </div>
+          <div className="pointer-events-none absolute -left-24 -top-24 size-80 rounded-full bg-primary/10 blur-3xl" />
 
-      {/* =====================================================
-          أحدث الشحنات
-      ====================================================== */}
+          <div className="pointer-events-none absolute -bottom-32 right-1/3 size-96 rounded-full bg-secondary/10 blur-3xl" />
 
-      <section className="w-full min-w-0">
-        <div className="flex min-w-0 items-center justify-between gap-3">
-          <h2 className="min-w-0 break-words text-base font-bold text-primary sm:text-lg">
-            أحدث الشحنات
-          </h2>
+          <div className="relative grid gap-8 lg:grid-cols-[1fr_340px] lg:items-center">
 
-          <Link
-            to="/shipments"
-            className="shrink-0 text-xs font-bold text-primary transition hover:opacity-70"
-          >
-            عرض الكل
-          </Link>
-        </div>
+            <div className="min-w-0">
 
-        <Card className="mt-3 w-full min-w-0 overflow-hidden sm:mt-4">
-          {/* رأس الجدول - Desktop */}
-          <div className="hidden grid-cols-[1fr_1fr_1fr_1fr] gap-4 border-b border-border px-5 py-3 text-xs font-bold text-muted-foreground sm:grid">
-            <span>رقم الشحنة</span>
-            <span>المستلم</span>
-            <span>الحالة</span>
-            <span>آخر تحديث</span>
-          </div>
-
-          <div className="divide-y divide-border">
-            {loading ? (
-              <div className="px-4 py-6 text-sm text-muted-foreground sm:px-5">
-                جاري تحميل الشحنات...
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/10 bg-background/80 px-3.5 py-2 text-xs font-bold text-primary shadow-sm backdrop-blur">
+                <Sparkles className="size-4" />
+                تجربة أمانتي الذكية
               </div>
-            ) : shipments.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-muted-foreground sm:px-5">
-                لا توجد شحنات حتى الآن.
-              </div>
-            ) : (
-              shipments.map((shipment) => (
+
+              <h1 className="max-w-2xl text-3xl font-black leading-[1.15] tracking-tight text-primary sm:text-4xl lg:text-[3.25rem]">
+                أهلاً بك في
+                <span className="block text-secondary">
+                  أمانتي ✨
+                </span>
+              </h1>
+
+              <p className="mt-4 max-w-xl text-sm font-medium leading-7 text-muted-foreground sm:text-base sm:leading-8">
+                كل شحناتك وأماناتك بين يديك. أرسل،
+                تابع، واحفظ بسهولة من مكان واحد.
+              </p>
+
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+
                 <Link
-                  key={shipment.id}
-                  to="/shipments/$id"
-                  params={{
-                    id: shipment.id,
-                  }}
-                  className="block w-full min-w-0 px-4 py-4 transition-colors hover:bg-muted/60 sm:grid sm:grid-cols-[1fr_1fr_1fr_1fr] sm:items-center sm:gap-4 sm:px-5"
+                  to="/shipments/new"
+                  className={`${buttonClass(
+                    "primary",
+                    "lg",
+                  )} justify-center shadow-lg shadow-primary/10`}
                 >
-                  {/* Mobile */}
-                  <div className="flex min-w-0 items-center justify-between gap-3 sm:hidden">
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-semibold text-muted-foreground">
-                        رقم الشحنة
-                      </p>
-
-                      <span
-                        className="mt-1 block truncate font-mono text-sm font-bold text-primary"
-                        dir="ltr"
-                      >
-                        {shipment.tracking_number}
-                      </span>
-                    </div>
-
-                    <StatusBadge
-                      tone={getStatusTone(
-                        shipment.status,
-                      )}
-                    >
-                      {getStatusLabel(
-                        shipment.status,
-                      )}
-                    </StatusBadge>
-                  </div>
-
-                  <div className="mt-3 grid min-w-0 grid-cols-2 gap-3 sm:hidden">
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-semibold text-muted-foreground">
-                        المستلم
-                      </p>
-
-                      <p className="mt-1 truncate text-sm text-primary">
-                        {shipment.receiver_name}
-                      </p>
-                    </div>
-
-                    <div className="min-w-0 text-left">
-                      <p className="text-[11px] font-semibold text-muted-foreground">
-                        آخر تحديث
-                      </p>
-
-                      <p className="mt-1 truncate text-xs text-muted-foreground">
-                        {formatDate(
-                          shipment.updated_at,
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Desktop */}
-                  <span
-                    className="hidden font-mono text-sm font-bold text-primary sm:block"
-                    dir="ltr"
-                  >
-                    {shipment.tracking_number}
-                  </span>
-
-                  <span className="hidden text-sm text-muted-foreground sm:block">
-                    {shipment.receiver_name}
-                  </span>
-
-                  <span className="hidden sm:block">
-                    <StatusBadge
-                      tone={getStatusTone(
-                        shipment.status,
-                      )}
-                    >
-                      {getStatusLabel(
-                        shipment.status,
-                      )}
-                    </StatusBadge>
-                  </span>
-
-                  <span className="hidden text-xs text-muted-foreground sm:block">
-                    {formatDate(
-                      shipment.updated_at,
-                    )}
-                  </span>
+                  <Truck className="size-5" />
+                  إرسال شحنة
                 </Link>
-              ))
-            )}
+
+                <Link
+                  to="/amanat/new"
+                  className={`${buttonClass(
+                    "secondary",
+                    "lg",
+                  )} justify-center`}
+                >
+                  <ShieldCheck className="size-5" />
+                  حفظ أمانة
+                </Link>
+
+              </div>
+
+              <div className="mt-6 flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                <span className="size-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.10)]" />
+
+                جميع خدمات أمانتي متاحة لك من مكان واحد
+              </div>
+
+            </div>
+
+            <HeroSummary
+              total={stats.total}
+              completed={stats.completed}
+              ready={stats.ready}
+              inTransit={stats.inTransit}
+              performance={stats.performance}
+            />
+
           </div>
-        </Card>
-      </section>
+        </section>
 
-      {/* =====================================================
-          الأمانات + الإشعارات
-      ====================================================== */}
+        {/* ================================================================== */}
+        {/* ERROR                                                              */}
+        {/* ================================================================== */}
 
-      <div className="grid w-full min-w-0 gap-6 lg:grid-cols-2 lg:gap-8">
-        {/* ===================================================
-            أحدث الأمانات
-        ==================================================== */}
+        {error ? (
+          <div className="flex flex-col gap-3 rounded-2xl border border-destructive/10 bg-destructive/[0.04] p-4 sm:flex-row sm:items-center sm:justify-between">
 
-        <section className="w-full min-w-0">
-          <div className="flex min-w-0 items-center justify-between gap-3">
-            <h2 className="min-w-0 break-words text-base font-bold text-primary sm:text-lg">
-              أحدث الأمانات
-            </h2>
+            <p className="text-sm font-bold text-primary">
+              {error}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => loadDashboard(true)}
+              disabled={refreshing}
+              className={buttonClass(
+                "secondary",
+                "sm",
+              )}
+            >
+              {refreshing ? (
+                <RefreshCw className="size-4 animate-spin" />
+              ) : (
+                <RefreshCw className="size-4" />
+              )}
+
+              إعادة المحاولة
+            </button>
+
+          </div>
+        ) : null}
+
+        {/* ================================================================== */}
+        {/* KPI                                                                */}
+        {/* ================================================================== */}
+
+        <section>
+
+          <SectionHeading
+            eyebrow="إحصائيات"
+            title="ملخص شحناتك"
+            description="الأرقام الأساسية لحسابك في نظرة واحدة."
+          />
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+            <StatCard
+              icon={Package}
+              title="إجمالي الشحنات"
+              value={stats.total}
+              description="كل شحناتك"
+              tone="navy"
+            />
+
+            <StatCard
+              icon={Truck}
+              title="قيد التوصيل"
+              value={stats.inTransit}
+              description="في الطريق"
+              tone="blue"
+            />
+
+            <StatCard
+              icon={PackageCheck}
+              title="جاهزة للاستلام"
+              value={stats.ready}
+              description="بانتظار استلامك"
+              tone="orange"
+            />
+
+            <StatCard
+              icon={CheckCircle2}
+              title="تم التسليم"
+              value={stats.completed}
+              description="شحنات مكتملة"
+              tone="green"
+            />
+
+          </div>
+        </section>
+
+        {/* ================================================================== */}
+        {/* MAIN CONTENT                                                       */}
+        {/* ================================================================== */}
+
+        <section className="grid gap-5 xl:grid-cols-[1.4fr_0.85fr]">
+
+          <Card className="overflow-hidden rounded-[1.75rem] border-border/70 p-0 shadow-soft">
+
+            <div className="flex items-center justify-between gap-4 border-b border-border/60 p-5 sm:p-6">
+
+              <SectionHeading
+                compact
+                eyebrow="الشحنات"
+                title="أحدث الشحنات"
+                description="آخر شحناتك المسجلة."
+              />
+
+              <Link
+                to="/shipments"
+                className="inline-flex shrink-0 items-center gap-1.5 text-xs font-black text-primary transition-colors hover:text-secondary sm:text-sm"
+              >
+                عرض الكل
+                <ArrowLeft className="size-4" />
+              </Link>
+
+            </div>
+
+            <div className="p-3 sm:p-4">
+
+              {loading ? (
+                <LoadingList />
+              ) : recentShipments.length === 0 ? (
+                <EmptyState
+                  icon={Package}
+                  title="لا توجد شحنات بعد"
+                  description="ابدأ بإرسال أول شحنة لك عبر أمانتي."
+                  to="/shipments/new"
+                  label="إرسال شحنة"
+                />
+              ) : (
+                <div className="space-y-2">
+                  {recentShipments.map(
+                    (shipment) => (
+                      <ShipmentRow
+                        key={shipment.id}
+                        shipment={shipment}
+                      />
+                    ),
+                  )}
+                </div>
+              )}
+
+            </div>
+          </Card>
+
+          <Card className="overflow-hidden rounded-[1.75rem] border-border/70 p-0 shadow-soft">
+
+            <div className="flex items-center justify-between gap-4 border-b border-border/60 p-5 sm:p-6">
+
+              <SectionHeading
+                compact
+                eyebrow="التنبيهات"
+                title="آخر الإشعارات"
+                description="آخر المستجدات الخاصة بك."
+              />
+
+              {unreadNotifications > 0 ? (
+                <span className="shrink-0 rounded-full bg-secondary/10 px-2.5 py-1 text-[10px] font-black text-secondary">
+                  {unreadNotifications} جديد
+                </span>
+              ) : null}
+
+            </div>
+
+            <div className="p-3 sm:p-4">
+
+              {loading ? (
+                <LoadingList />
+              ) : notifications.length === 0 ? (
+                <EmptyState
+                  icon={Bell}
+                  title="لا توجد إشعارات"
+                  description="ستظهر هنا آخر التحديثات والتنبيهات."
+                  to="/notifications"
+                  label="الإشعارات"
+                />
+              ) : (
+                <div className="space-y-2">
+                  {notifications.map(
+                    (notification) => (
+                      <NotificationRow
+                        key={notification.id}
+                        notification={notification}
+                      />
+                    ),
+                  )}
+                </div>
+              )}
+
+            </div>
+          </Card>
+        </section>
+
+        {/* ================================================================== */}
+        {/* AMANAT                                                             */}
+        {/* ================================================================== */}
+
+        <section>
+
+          <div className="mb-4 flex items-end justify-between gap-4">
+
+            <SectionHeading
+              eyebrow="الأمانات"
+              title="أماناتك"
+              description="الأمانات المحفوظة ضمن حسابك."
+            />
 
             <Link
               to="/amanat"
-              className="shrink-0 text-xs font-bold text-primary transition hover:opacity-70"
+              className="inline-flex shrink-0 items-center gap-1.5 text-xs font-black text-primary transition-colors hover:text-secondary sm:text-sm"
             >
               عرض الكل
+              <ArrowLeft className="size-4" />
             </Link>
+
           </div>
 
-          <div className="mt-3 w-full min-w-0 space-y-3 sm:mt-4">
-            {loading ? (
-              <Card className="w-full p-4 text-sm text-muted-foreground">
-                جاري تحميل الأمانات...
-              </Card>
-            ) : amanat.length === 0 ? (
-              <Card className="w-full p-4 text-sm text-muted-foreground">
-                لا توجد أمانات حتى الآن.
-              </Card>
-            ) : (
-              amanat.map((item) => (
-                <Card
+          {loading ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              <LoadingCard />
+              <LoadingCard />
+              <LoadingCard />
+            </div>
+          ) : recentAmanat.length === 0 ? (
+            <Card className="rounded-[1.75rem] border-border/70 p-6 shadow-soft sm:p-8">
+              <EmptyState
+                icon={ShieldCheck}
+                title="لا توجد أمانات محفوظة"
+                description="يمكنك حفظ أمانتك بسهولة من خلال أمانتي."
+                to="/amanat/new"
+                label="حفظ أمانة"
+              />
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3">
+              {recentAmanat.map((item) => (
+                <AmanatCard
                   key={item.id}
-                  className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-3 sm:p-4"
-                >
-                  <div className="min-w-0">
-                    <p
-                      className="truncate font-mono text-sm font-bold text-primary"
-                      dir="ltr"
-                    >
-                      {item.reference_number}
-                    </p>
+                  amanat={item}
+                />
+              ))}
+            </div>
+          )}
 
-                    <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {formatDate(
-                        item.stored_at,
-                      )}
-                    </p>
-                  </div>
-
-                  <div className="shrink-0">
-                    <StatusBadge
-                      tone={getStatusTone(
-                        item.status,
-                      )}
-                    >
-                      {getStatusLabel(
-                        item.status,
-                      )}
-                    </StatusBadge>
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
         </section>
 
-        {/* ===================================================
-            الإشعارات
-        ==================================================== */}
-
-        <section className="w-full min-w-0">
-          <div className="flex min-w-0 items-center justify-between gap-3">
-            <h2 className="min-w-0 break-words text-base font-bold text-primary sm:text-lg">
-              الإشعارات
-            </h2>
-
-            {unreadNotifications > 0 && (
-              <Link
-                to="/notifications"
-                className="shrink-0 text-xs font-bold text-primary transition hover:opacity-70"
-              >
-                {unreadNotifications} غير مقروء
-              </Link>
-            )}
-          </div>
-
-          <Card className="mt-3 w-full min-w-0 divide-y divide-border sm:mt-4">
-            {loading ? (
-              <div className="p-4 text-sm text-muted-foreground">
-                جاري تحميل الإشعارات...
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground">
-                لا توجد إشعارات.
-              </div>
-            ) : (
-              notifications.map(
-                (notification) => (
-                  <div
-                    key={notification.id}
-                    className={`flex min-w-0 items-start gap-3 p-3 sm:p-4 ${
-                      notification.is_read
-                        ? ""
-                        : "bg-primary/[0.03]"
-                    }`}
-                  >
-                    <span className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent/20">
-                      <Bell
-                        className="size-4 text-accent-foreground"
-                        strokeWidth={1.6}
-                      />
-                    </span>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="break-words text-sm font-medium leading-6 text-primary">
-                        {notification.title}
-                      </p>
-
-                      {notification.message && (
-                        <p className="mt-1 break-words text-xs leading-5 text-muted-foreground">
-                          {notification.message}
-                        </p>
-                      )}
-
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {formatDate(
-                          notification.created_at,
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                ),
-              )
-            )}
-          </Card>
-        </section>
       </div>
+
+      <button
+        type="button"
+        onClick={() => loadDashboard(true)}
+        disabled={refreshing}
+        aria-label="تحديث البيانات"
+        title="تحديث البيانات"
+        className="fixed bottom-5 left-5 z-30 flex size-12 items-center justify-center rounded-full border border-border bg-background/95 text-primary shadow-xl backdrop-blur transition-all hover:-translate-y-1 hover:shadow-2xl disabled:cursor-not-allowed disabled:opacity-70 sm:bottom-7 sm:left-7"
+      >
+        <RefreshCw
+          className={`size-5 ${
+            refreshing ? "animate-spin" : ""
+          }`}
+        />
+      </button>
     </DashboardShell>
   );
 }
 
-/* ==========================================================
-   حالات الشحنات والأمانات
-========================================================== */
+/* ========================================================================== */
+/* HERO                                                                      */
+/* ========================================================================== */
 
-function getStatusLabel(
-  status: string,
-) {
-  const labels: Record<
-    string,
-    string
-  > = {
+function HeroSummary({
+  total,
+  completed,
+  ready,
+  inTransit,
+  performance,
+}: {
+  total: number;
+  completed: number;
+  ready: number;
+  inTransit: number;
+  performance: number;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-[1.75rem] border border-primary/10 bg-background/75 p-5 shadow-xl shadow-primary/5 backdrop-blur-xl sm:p-6">
+
+      <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-secondary/10 blur-3xl" />
+
+      <div className="relative">
+
+        <div className="flex items-center justify-between gap-3">
+
+          <div>
+            <p className="text-xs font-bold text-muted-foreground">
+              حالة الحساب
+            </p>
+
+            <p className="mt-1 text-lg font-black text-primary">
+              {total === 0
+                ? "جاهز للانطلاق"
+                : "نشاطك مستمر"}
+            </p>
+          </div>
+
+          <div className="flex size-11 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+            <Activity className="size-5" />
+          </div>
+
+        </div>
+
+        <div className="mt-7 flex items-end justify-between gap-4">
+
+          <div>
+            <p className="text-xs font-bold text-muted-foreground">
+              أداء الشحنات
+            </p>
+
+            <p className="mt-1 text-4xl font-black tracking-tight text-primary">
+              {performance}%
+            </p>
+          </div>
+
+          <TrendingUp className="mb-1 size-5 text-secondary" />
+
+        </div>
+
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-gradient-to-l from-secondary to-primary transition-all duration-700"
+            style={{
+              width: `${performance}%`,
+            }}
+          />
+        </div>
+
+        <div className="mt-5 grid grid-cols-3 gap-2">
+
+          <HeroMetric
+            label="مكتملة"
+            value={completed}
+            icon={CheckCircle2}
+          />
+
+          <HeroMetric
+            label="جاهزة"
+            value={ready}
+            icon={PackageCheck}
+          />
+
+          <HeroMetric
+            label="بالطريق"
+            value={inTransit}
+            icon={Truck}
+          />
+
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+function HeroMetric({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: number;
+  icon: LucideIcon;
+}) {
+  return (
+    <div className="rounded-2xl bg-muted/40 p-3 text-center">
+
+      <div className="mx-auto flex size-8 items-center justify-center rounded-xl bg-background text-primary shadow-sm">
+        <Icon className="size-4" />
+      </div>
+
+      <p className="mt-2 text-[10px] font-bold text-muted-foreground">
+        {label}
+      </p>
+
+      <p className="mt-0.5 text-lg font-black text-primary">
+        {value}
+      </p>
+
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* STAT CARD                                                                  */
+/* ========================================================================== */
+
+function StatCard({
+  icon: Icon,
+  title,
+  value,
+  description,
+  tone,
+}: {
+  icon: LucideIcon;
+  title: string;
+  value: number;
+  description: string;
+  tone: "navy" | "blue" | "orange" | "green";
+}) {
+  const tones = {
+    navy: "bg-primary/[0.07] text-primary",
+    blue: "bg-sky-500/10 text-sky-600",
+    orange: "bg-orange-500/10 text-orange-600",
+    green: "bg-emerald-500/10 text-emerald-600",
+  };
+
+  return (
+    <div className="group relative overflow-hidden rounded-[1.5rem] border border-border/70 bg-card p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+
+      <div className="absolute -left-10 -top-10 size-24 rounded-full bg-primary/[0.025] blur-2xl transition-transform duration-500 group-hover:scale-150" />
+
+      <div className="relative flex items-start justify-between">
+
+        <div
+          className={`flex size-12 items-center justify-center rounded-2xl ${tones[tone]}`}
+        >
+          <Icon className="size-5" />
+        </div>
+
+        <span className="mt-2 size-2 rounded-full bg-secondary/70" />
+
+      </div>
+
+      <div className="relative mt-5">
+
+        <p className="text-sm font-bold text-muted-foreground">
+          {title}
+        </p>
+
+        <p className="mt-1 text-3xl font-black tracking-tight text-primary">
+          {value}
+        </p>
+
+        <p className="mt-2 text-xs font-medium text-muted-foreground">
+          {description}
+        </p>
+
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* SHIPMENT                                                                   */
+/* ========================================================================== */
+
+function ShipmentRow({
+  shipment,
+}: {
+  shipment: Shipment;
+}) {
+  return (
+    <Link
+      to="/shipments/$id"
+      params={{ id: shipment.id }}
+      className="group flex flex-col gap-4 rounded-2xl border border-transparent bg-muted/25 p-4 transition-all duration-300 hover:border-primary/10 hover:bg-primary/[0.025] sm:flex-row sm:items-center sm:justify-between"
+    >
+
+      <div className="flex min-w-0 items-center gap-3">
+
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/[0.07] text-primary transition-transform group-hover:scale-105">
+          <Package className="size-5" />
+        </div>
+
+        <div className="min-w-0">
+
+          <div className="flex flex-wrap items-center gap-2">
+
+            <p className="truncate text-sm font-black text-primary">
+              {shipment.tracking_number}
+            </p>
+
+            <StatusBadge
+              status={getStatusTone(
+                shipment.status,
+              )}
+            >
+              {getStatusLabel(
+                shipment.status,
+              )}
+            </StatusBadge>
+
+          </div>
+
+          <p className="mt-1 truncate text-xs font-medium text-muted-foreground">
+            إلى {shipment.receiver_name || "المستلم"}
+          </p>
+
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 sm:justify-end">
+
+        <p className="text-xs font-bold text-muted-foreground">
+          {formatDate(
+            shipment.created_at,
+          )}
+        </p>
+
+        <div className="flex size-9 items-center justify-center rounded-xl bg-background text-muted-foreground shadow-sm group-hover:text-primary">
+          <ChevronLeft className="size-4" />
+        </div>
+
+      </div>
+    </Link>
+  );
+}
+
+/* ========================================================================== */
+/* NOTIFICATION                                                               */
+/* ========================================================================== */
+
+function NotificationRow({
+  notification,
+}: {
+  notification: Notification;
+}) {
+  return (
+    <Link
+      to="/notifications"
+      className={`group flex gap-3 rounded-2xl border p-4 transition-all duration-300 ${
+        notification.is_read
+          ? "border-transparent bg-muted/25 hover:border-primary/10 hover:bg-primary/[0.025]"
+          : "border-secondary/10 bg-secondary/[0.045] hover:bg-secondary/[0.07]"
+      }`}
+    >
+
+      <div
+        className={`relative flex size-10 shrink-0 items-center justify-center rounded-xl ${
+          notification.is_read
+            ? "bg-primary/[0.07] text-primary"
+            : "bg-secondary/10 text-secondary"
+        }`}
+      >
+        {notification.is_read ? (
+          <Bell className="size-4" />
+        ) : (
+          <BellRing className="size-4" />
+        )}
+
+        {!notification.is_read ? (
+          <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full bg-secondary ring-2 ring-card" />
+        ) : null}
+      </div>
+
+      <div className="min-w-0 flex-1">
+
+        <div className="flex items-start justify-between gap-3">
+
+          <p className="line-clamp-1 text-sm font-black text-primary">
+            {notification.title}
+          </p>
+
+          <span className="shrink-0 text-[10px] font-bold text-muted-foreground">
+            {formatDate(
+              notification.created_at,
+            )}
+          </span>
+
+        </div>
+
+        <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-muted-foreground">
+          {notification.message}
+        </p>
+
+      </div>
+    </Link>
+  );
+}
+
+/* ========================================================================== */
+/* AMANAT                                                                     */
+/* ========================================================================== */
+
+function AmanatCard({
+  amanat,
+}: {
+  amanat: Amanat;
+}) {
+  return (
+    <Link
+      to="/amanat"
+      className="group relative overflow-hidden rounded-[1.5rem] border border-border/70 bg-card p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-secondary/15 hover:shadow-xl"
+    >
+
+      <div className="pointer-events-none absolute -left-10 -top-10 size-28 rounded-full bg-secondary/[0.05] blur-2xl" />
+
+      <div className="relative flex items-start justify-between gap-3">
+
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+          <ShieldCheck className="size-5" />
+        </div>
+
+        <StatusBadge
+          status={getAmanatTone(
+            amanat.status,
+          )}
+        >
+          {getAmanatLabel(
+            amanat.status,
+          )}
+        </StatusBadge>
+
+      </div>
+
+      <div className="relative mt-5">
+
+        <p className="text-[11px] font-bold text-muted-foreground">
+          رقم المرجع
+        </p>
+
+        <p className="mt-1 truncate text-lg font-black text-primary">
+          {amanat.reference_number}
+        </p>
+
+        <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-4">
+
+          <span className="text-xs font-medium text-muted-foreground">
+            تاريخ الحفظ
+          </span>
+
+          <span className="text-xs font-bold text-primary">
+            {formatDate(
+              amanat.stored_at,
+            )}
+          </span>
+
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+/* ========================================================================== */
+/* SECTION HEADING                                                            */
+/* ========================================================================== */
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+  compact = false,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  compact?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+
+      <div className="flex items-center gap-2">
+
+        <span className="size-1.5 rounded-full bg-secondary" />
+
+        <span className="text-[10px] font-black tracking-wider text-secondary">
+          {eyebrow}
+        </span>
+
+      </div>
+
+      <h2
+        className={`font-black text-primary ${
+          compact
+            ? "mt-1 text-lg"
+            : "mt-1.5 text-xl sm:text-2xl"
+        }`}
+      >
+        {title}
+      </h2>
+
+      <p className="mt-1 text-xs font-medium leading-5 text-muted-foreground">
+        {description}
+      </p>
+
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* EMPTY                                                                      */
+/* ========================================================================== */
+
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  to,
+  label,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  to:
+    | "/shipments/new"
+    | "/amanat/new"
+    | "/notifications";
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-10 text-center">
+
+      <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/[0.06] text-primary">
+        <Icon className="size-6" />
+      </div>
+
+      <h3 className="mt-4 font-black text-primary">
+        {title}
+      </h3>
+
+      <p className="mt-1 max-w-md text-xs font-medium leading-6 text-muted-foreground">
+        {description}
+      </p>
+
+      <Link
+        to={to}
+        className={`${buttonClass(
+          "secondary",
+          "sm",
+        )} mt-5`}
+      >
+        {label}
+        <ArrowLeft className="size-4" />
+      </Link>
+
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* LOADING                                                                    */
+/* ========================================================================== */
+
+function LoadingList() {
+  return (
+    <div className="space-y-2">
+
+      {[1, 2, 3, 4].map((item) => (
+        <div
+          key={item}
+          className="flex animate-pulse items-center gap-3 rounded-2xl bg-muted/30 p-4"
+        >
+
+          <div className="size-11 rounded-2xl bg-muted" />
+
+          <div className="flex-1 space-y-2">
+            <div className="h-3 w-1/3 rounded-full bg-muted" />
+            <div className="h-2.5 w-1/2 rounded-full bg-muted" />
+          </div>
+
+        </div>
+      ))}
+
+    </div>
+  );
+}
+
+function LoadingCard() {
+  return (
+    <div className="h-44 animate-pulse rounded-[1.5rem] border border-border/70 bg-muted/30" />
+  );
+}
+
+/* ========================================================================== */
+/* HELPERS                                                                    */
+/* ========================================================================== */
+
+function getStatusLabel(status: string) {
+  const labels: Record<string, string> = {
     pending: "قيد المعالجة",
-    processing: "قيد المعالجة",
-
-    transit: "في الطريق",
-    in_transit: "في الطريق",
-
+    in_transit: "قيد التوصيل",
     ready: "جاهزة للاستلام",
-    ready_for_pickup:
-      "جاهزة للاستلام",
-
+    ready_for_pickup: "جاهزة للاستلام",
     delivered: "تم التسليم",
-    done: "تم التسليم",
-
-    stored: "محفوظة",
-
-    collected: "تم الاستلام",
+    stored_amanat: "أمانة محفوظة",
     received: "تم الاستلام",
-    completed: "تم الاستلام",
+    cancelled: "ملغاة",
+    "قيد المعالجة": "قيد المعالجة",
+    "قيد التوصيل": "قيد التوصيل",
+    "جاهزة للاستلام": "جاهزة للاستلام",
+    "تم التسليم": "تم التسليم",
+    "تم الاستلام": "تم الاستلام",
   };
 
   return labels[status] ?? status;
 }
 
-function getStatusTone(
-  status: string,
-) {
+function getStatusTone(status: string) {
+  if (
+    status === "in_transit" ||
+    status === "قيد التوصيل"
+  ) {
+    return "in_transit" as const;
+  }
+
   if (
     status === "ready" ||
-    status ===
-      "ready_for_pickup" ||
+    status === "ready_for_pickup" ||
     status === "جاهزة للاستلام"
   ) {
-    return "ready" as const;
+    return "ready_for_pickup" as const;
   }
 
   if (
     status === "delivered" ||
-    status === "done" ||
-    status === "collected" ||
+    status === "تم التسليم"
+  ) {
+    return "delivered" as const;
+  }
+
+  if (status === "stored_amanat") {
+    return "stored_amanat" as const;
+  }
+
+  if (
     status === "received" ||
-    status === "completed"
+    status === "تم الاستلام"
   ) {
-    return "done" as const;
+    return "received" as const;
   }
 
   if (
-    status === "stored"
+    status === "cancelled" ||
+    status === "ملغاة"
   ) {
-    return "stored" as const;
-  }
-
-  if (
-    status === "transit" ||
-    status === "in_transit"
-  ) {
-    return "transit" as const;
+    return "cancelled" as const;
   }
 
   return "pending" as const;
 }
 
-/* ==========================================================
-   التاريخ
-========================================================== */
+function getAmanatLabel(status: string) {
+  const labels: Record<string, string> = {
+    stored: "محفوظة",
+    ready_for_pickup: "جاهزة للاستلام",
+    received: "تم الاستلام",
+    expired: "منتهية",
+    cancelled: "ملغاة",
+  };
 
-function formatDate(
-  date: string,
-) {
-  return new Date(
-    date,
-  ).toLocaleString("ar-YE", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  return labels[status] ?? status;
+}
+
+function getAmanatTone(status: string) {
+  if (status === "stored") {
+    return "stored_amanat" as const;
+  }
+
+  if (status === "ready_for_pickup") {
+    return "ready_for_pickup" as const;
+  }
+
+  if (status === "received") {
+    return "received" as const;
+  }
+
+  if (
+    status === "cancelled" ||
+    status === "expired"
+  ) {
+    return "cancelled" as const;
+  }
+
+  return "pending" as const;
+}
+
+function formatDate(value: string) {
+  try {
+    return new Intl.DateTimeFormat("ar-YE", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
 }

@@ -11,15 +11,22 @@ import {
 } from "@tanstack/react-router";
 
 import {
+  Activity,
   ArrowRight,
+  Bell,
   CheckCircle2,
   Clock3,
   CreditCard,
+  HelpCircle,
   MapPin,
+  Megaphone,
   Package,
   Plus,
   Search,
+  Settings,
+  ShieldCheck,
   User,
+  WalletCards,
 } from "lucide-react";
 
 import { DashboardShell } from "@/components/amanati/DashboardShell";
@@ -131,9 +138,7 @@ function getStatusTone(
   return "pending";
 }
 
-function formatFee(
-  fee: number | null,
-) {
+function formatFee(fee: number | null) {
   if (
     fee === null ||
     fee === undefined
@@ -183,7 +188,7 @@ function getPaymentLabel(
 
 function getPaymentTone(
   paymentStatus: string | null,
-) {
+): "done" | "pending" {
   if (
     paymentStatus === "paid" ||
     paymentStatus === "completed"
@@ -285,9 +290,7 @@ function AmanatPage() {
 
       supabase
         .from("pickup_points")
-        .select(
-          "id,name,address",
-        )
+        .select("id,name,address")
         .eq("is_active", true)
         .order("name", {
           ascending: true,
@@ -336,9 +339,10 @@ function AmanatPage() {
 
   useEffect(() => {
     let channel:
-      ReturnType<
-        typeof supabase.channel
-      > | null = null;
+      | ReturnType<
+          typeof supabase.channel
+        >
+      | null = null;
 
     async function subscribeToChanges() {
       const {
@@ -505,14 +509,44 @@ function AmanatPage() {
       nav={[
         {
           label: "لوحة التحكم",
-          icon: Package,
+          icon: Activity,
           to: "/dashboard",
         },
         {
-          label: "أماناتي",
+          label: "شحناتي",
           icon: Package,
+          to: "/shipments",
+        },
+        {
+          label: "أماناتي",
+          icon: ShieldCheck,
           to: "/amanat",
           active: true,
+        },
+        {
+          label: "المحفظة والأرباح",
+          icon: WalletCards,
+          to: "/wallet",
+        },
+        {
+          label: "التسويق بالعمولة",
+          icon: Megaphone,
+          to: "/marketing",
+        },
+        {
+          label: "الإشعارات",
+          icon: Bell,
+          to: "/notifications",
+        },
+        {
+          label: "الدعم والمساعدة",
+          icon: HelpCircle,
+          to: "/help",
+        },
+        {
+          label: "الإعدادات",
+          icon: Settings,
+          to: "/settings",
         },
       ]}
       actions={
@@ -848,8 +882,6 @@ function AmanatPage() {
                       className="min-w-0 rounded-2xl border border-border bg-background p-4"
                     >
 
-                      {/* الرقم والحالة */}
-
                       <div className="flex min-w-0 items-start justify-between gap-3">
 
                         <div className="min-w-0">
@@ -861,7 +893,9 @@ function AmanatPage() {
                             className="mt-1 break-all font-mono text-sm font-extrabold text-primary"
                             dir="ltr"
                           >
-                            {item.reference_number}
+                            {
+                              item.reference_number
+                            }
                           </p>
 
                           <p className="mt-1 text-[10px] leading-5 text-muted-foreground">
@@ -885,8 +919,6 @@ function AmanatPage() {
 
                       </div>
 
-                      {/* المستلم */}
-
                       <div className="mt-4 grid gap-3">
 
                         <div className="rounded-xl bg-muted/30 p-3">
@@ -896,6 +928,7 @@ function AmanatPage() {
                             <User className="mt-0.5 size-4 shrink-0 text-primary" />
 
                             <div className="min-w-0">
+
                               <p className="text-[10px] text-muted-foreground">
                                 المستلم
                               </p>
@@ -904,6 +937,7 @@ function AmanatPage() {
                                 {item.receiver_name ||
                                   "غير محدد"}
                               </p>
+
                             </div>
 
                           </div>
@@ -917,6 +951,7 @@ function AmanatPage() {
                             <PhoneIcon />
 
                             <div className="min-w-0">
+
                               <p className="text-[10px] text-muted-foreground">
                                 رقم الهاتف
                               </p>
@@ -928,6 +963,7 @@ function AmanatPage() {
                                 {item.receiver_phone ||
                                   "غير محدد"}
                               </p>
+
                             </div>
 
                           </div>
@@ -935,8 +971,6 @@ function AmanatPage() {
                         </div>
 
                       </div>
-
-                      {/* نقطة الاستلام */}
 
                       <div className="mt-3 rounded-xl bg-muted/30 p-3">
 
@@ -968,8 +1002,6 @@ function AmanatPage() {
                         </div>
 
                       </div>
-
-                      {/* السعر والدفع */}
 
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
 
@@ -1047,8 +1079,6 @@ function AmanatPage() {
                         </div>
 
                       </div>
-
-                      {/* الوصف والملاحظات */}
 
                       {(item.description ||
                         item.notes) && (
@@ -1138,6 +1168,7 @@ function AmanatPage() {
                 </thead>
 
                 <tbody>
+
                   {filteredAmanat.map(
                     (item) => {
                       const pickupPoint =
@@ -1176,6 +1207,7 @@ function AmanatPage() {
                           <tr className="border-b border-border transition-colors hover:bg-muted/20">
 
                             <td className="px-5 py-5 align-middle">
+
                               <div className="min-w-0">
 
                                 <p
@@ -1198,6 +1230,7 @@ function AmanatPage() {
                                 </p>
 
                               </div>
+
                             </td>
 
                             <td className="px-5 py-5 align-middle">
@@ -1403,6 +1436,7 @@ function AmanatPage() {
                       );
                     },
                   )}
+
                 </tbody>
 
               </table>
@@ -1464,10 +1498,6 @@ function AmanatPage() {
   );
 }
 
-/*
- * أيقونة الهاتف بشكل منفصل حتى يبقى
- * قسم بطاقات الجوال مرتبًا.
- */
 function PhoneIcon() {
   return (
     <svg

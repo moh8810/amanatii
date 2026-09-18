@@ -98,7 +98,7 @@ function RegisterPage() {
         password,
         options: {
           emailRedirectTo:
-            `${window.location.origin}/login`,
+            `https://amanatii.vercel.app/login`,
           data: {
             full_name: trimmedFullName,
             phone: trimmedPhone,
@@ -201,7 +201,7 @@ function RegisterPage() {
         email: trimmedEmail,
         options: {
           emailRedirectTo:
-            `${window.location.origin}/login`,
+            `https://amanatii.vercel.app/login`,
         },
       });
 
@@ -615,3 +615,4 @@ function RegisterPage() {
     </div>
   );
 }
+

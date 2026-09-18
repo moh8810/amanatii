@@ -6,17 +6,24 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Activity,
   ArrowRight,
   CalendarDays,
-  Clock3,
-  Package,
-  Search,
-  Truck,
   CheckCircle2,
-  PackageCheck,
+  Clock3,
   CreditCard,
-  UserRound,
+  HelpCircle,
+  Package,
+  PackageCheck,
   Phone,
+  Search,
+  Settings,
+  ShieldCheck,
+  Truck,
+  UserRound,
+  WalletCards,
+  Bell,
+  Trophy,
 } from "lucide-react";
 
 import { DashboardShell } from "@/components/amanati/DashboardShell";
@@ -222,6 +229,12 @@ function getPaymentText(
 
   return "بانتظار الدفع";
 }
+
+/*
+ * =========================================================
+ * الصفحة
+ * =========================================================
+ */
 
 function ShipmentsPage() {
   const [shipments, setShipments] =
@@ -499,23 +512,61 @@ function ShipmentsPage() {
           "received",
     ).length;
 
+  /*
+   * =========================================================
+   * القائمة الجانبية الموحدة
+   * =========================================================
+   */
+
+  const nav = [
+    {
+      label: "لوحة التحكم",
+      icon: Activity,
+      to: "/dashboard",
+    },
+    {
+      label: "شحناتي",
+      icon: Package,
+      to: "/shipments",
+      active: true,
+    },
+    {
+      label: "أماناتي",
+      icon: ShieldCheck,
+      to: "/amanat",
+    },
+    {
+      label: "المحفظة والأرباح",
+      icon: WalletCards,
+      to: "/wallet",
+    },
+    {
+      label: "تحديات أمانتي",
+      icon: Trophy,
+      to: "/challenges",
+    },
+    {
+      label: "الإشعارات",
+      icon: Bell,
+      to: "/notifications",
+    },
+    {
+      label: "الدعم والمساعدة",
+      icon: HelpCircle,
+      to: "/help",
+    },
+    {
+      label: "الإعدادات",
+      icon: Settings,
+      to: "/settings",
+    },
+  ];
+
   return (
     <DashboardShell
       title="شحناتي"
       subtitle="تابع جميع شحناتك وحالتها من مكان واحد."
-      nav={[
-        {
-          label: "لوحة التحكم",
-          icon: Package,
-          to: "/dashboard",
-        },
-        {
-          label: "شحناتي",
-          icon: Package,
-          to: "/shipments",
-          active: true,
-        },
-      ]}
+      nav={nav}
       actions={
         <Link
           to="/shipments/new"
@@ -530,7 +581,8 @@ function ShipmentsPage() {
           الإحصائيات
       ================================================== */}
 
-      <div className="grid w-full min-w-0 grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-5">
+      <div className="grid w-full min-w-0 grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+
         <Card className="min-w-0 p-4 sm:p-5">
           <div className="flex min-w-0 items-center justify-between gap-2">
             <div className="min-w-0">
@@ -611,7 +663,7 @@ function ShipmentsPage() {
           </div>
         </Card>
 
-        <Card className="col-span-2 min-w-0 p-4 sm:col-span-2 sm:p-5 lg:col-span-1">
+        <Card className="col-span-2 min-w-0 p-4 sm:p-5 lg:col-span-1">
           <div className="flex min-w-0 items-center justify-between gap-2">
             <div className="min-w-0">
               <p className="break-words text-[11px] text-muted-foreground sm:text-xs">
@@ -630,6 +682,7 @@ function ShipmentsPage() {
             </div>
           </div>
         </Card>
+
       </div>
 
       {/* =================================================
@@ -637,10 +690,11 @@ function ShipmentsPage() {
       ================================================== */}
 
       <Card className="w-full min-w-0 p-3 sm:p-5">
+
         <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
 
-          {/* البحث */}
           <div className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-xl border border-border bg-background px-3 sm:px-4">
+
             <Search className="size-5 shrink-0 text-muted-foreground" />
 
             <input
@@ -654,10 +708,11 @@ function ShipmentsPage() {
               placeholder="ابحث برقم الشحنة أو اسم المستلم..."
               className="min-w-0 w-full bg-transparent text-sm text-primary outline-none placeholder:text-muted-foreground"
             />
+
           </div>
 
-          {/* الفلاتر */}
           <div className="flex w-full min-w-0 gap-2 overflow-x-auto pb-1 lg:w-auto lg:flex-wrap lg:overflow-visible lg:pb-0">
+
             <button
               type="button"
               onClick={() =>
@@ -742,6 +797,7 @@ function ShipmentsPage() {
             >
               تم التسليم
             </button>
+
           </div>
         </div>
       </Card>
@@ -751,16 +807,20 @@ function ShipmentsPage() {
       ================================================== */}
 
       <div className="block w-full min-w-0 space-y-3 sm:hidden">
+
         {loading ? (
           <Card className="p-8 text-center">
+
             <Clock3 className="mx-auto size-9 animate-pulse text-muted-foreground" />
 
             <p className="mt-4 text-sm font-bold text-primary">
               جاري تحميل شحناتك...
             </p>
+
           </Card>
         ) : error ? (
           <Card className="p-6 text-center">
+
             <Package className="mx-auto size-10 text-red-500" />
 
             <p className="mt-4 text-sm font-bold text-red-600">
@@ -770,28 +830,26 @@ function ShipmentsPage() {
             <p className="mt-2 break-words text-xs leading-5 text-muted-foreground">
               {error}
             </p>
+
           </Card>
-        ) : filteredShipments.length ===
-          0 ? (
+        ) : filteredShipments.length === 0 ? (
           <Card className="p-8 text-center">
+
             <Package className="mx-auto size-10 text-muted-foreground" />
 
             <p className="mt-4 text-sm font-bold text-primary">
-              {shipments.length ===
-              0
+              {shipments.length === 0
                 ? "لا توجد شحنات حتى الآن"
                 : "لا توجد نتائج مطابقة"}
             </p>
 
             <p className="mt-2 text-xs leading-5 text-muted-foreground">
-              {shipments.length ===
-              0
+              {shipments.length === 0
                 ? "عند إنشاء شحنة جديدة ستظهر هنا."
                 : "جرّب تغيير البحث أو فلتر الحالة."}
             </p>
 
-            {shipments.length ===
-              0 && (
+            {shipments.length === 0 && (
               <Link
                 to="/shipments/new"
                 className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
@@ -800,6 +858,7 @@ function ShipmentsPage() {
                 إرسال شحنة
               </Link>
             )}
+
           </Card>
         ) : (
           filteredShipments.map(
@@ -828,12 +887,13 @@ function ShipmentsPage() {
                   }}
                   className="block w-full min-w-0"
                 >
+
                   <Card className="w-full min-w-0 overflow-hidden p-4 transition-all active:scale-[0.99]">
 
-                    {/* رأس البطاقة */}
                     <div className="flex min-w-0 items-start justify-between gap-3">
 
                       <div className="min-w-0 flex-1">
+
                         <p className="text-[10px] font-semibold text-muted-foreground">
                           رقم الشحنة
                         </p>
@@ -846,9 +906,11 @@ function ShipmentsPage() {
                             shipment.tracking_number
                           }
                         </p>
+
                       </div>
 
                       <div className="shrink-0">
+
                         <StatusBadge
                           tone={getStatusTone(
                             shipment.status,
@@ -858,16 +920,19 @@ function ShipmentsPage() {
                             shipment.status,
                           )}
                         </StatusBadge>
+
                       </div>
+
                     </div>
 
-                    {/* المستلم */}
                     <div className="mt-4 grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
 
                       <div className="flex min-w-0 items-start gap-2">
+
                         <UserRound className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 
                         <div className="min-w-0">
+
                           <p className="text-[10px] font-semibold text-muted-foreground">
                             المستلم
                           </p>
@@ -877,13 +942,17 @@ function ShipmentsPage() {
                               shipment.receiver_name
                             }
                           </p>
+
                         </div>
+
                       </div>
 
                       <div className="flex min-w-0 items-start gap-2">
+
                         <Phone className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 
                         <div className="min-w-0">
+
                           <p className="text-[10px] font-semibold text-muted-foreground">
                             رقم الهاتف
                           </p>
@@ -896,13 +965,16 @@ function ShipmentsPage() {
                               shipment.receiver_phone
                             }
                           </p>
+
                         </div>
+
                       </div>
+
                     </div>
 
-                    {/* الوصف */}
                     {shipment.description && (
                       <div className="mt-4 rounded-xl bg-muted/40 px-3 py-2.5">
+
                         <p className="text-[10px] font-semibold text-muted-foreground">
                           وصف الشحنة
                         </p>
@@ -912,19 +984,22 @@ function ShipmentsPage() {
                             shipment.description
                           }
                         </p>
+
                       </div>
                     )}
 
-                    {/* الرسوم والدفع */}
                     <div className="mt-4 grid grid-cols-2 gap-2">
 
                       <div className="min-w-0 rounded-xl border border-border bg-background p-3">
+
                         <div className="flex items-center gap-2">
+
                           <CreditCard className="size-4 shrink-0 text-primary" />
 
                           <p className="text-[10px] font-semibold text-muted-foreground">
                             رسوم الشحن
                           </p>
+
                         </div>
 
                         <p className="mt-2 break-words text-xs font-extrabold text-primary">
@@ -932,10 +1007,13 @@ function ShipmentsPage() {
                             ? price
                             : "بانتظار تحديد الرسوم"}
                         </p>
+
                       </div>
 
                       <div className="min-w-0 rounded-xl border border-border bg-background p-3">
+
                         <div className="flex items-center gap-2">
+
                           {isPaid ? (
                             <CheckCircle2 className="size-4 shrink-0 text-green-600" />
                           ) : (
@@ -945,6 +1023,7 @@ function ShipmentsPage() {
                           <p className="text-[10px] font-semibold text-muted-foreground">
                             الدفع
                           </p>
+
                         </div>
 
                         <p
@@ -960,16 +1039,19 @@ function ShipmentsPage() {
                             shipment,
                           )}
                         </p>
+
                       </div>
+
                     </div>
 
-                    {/* التاريخ */}
                     <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3">
 
                       <div className="flex min-w-0 items-center gap-2">
+
                         <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
 
                         <div className="min-w-0">
+
                           <p className="text-[10px] font-semibold text-muted-foreground">
                             آخر تحديث
                           </p>
@@ -979,18 +1061,23 @@ function ShipmentsPage() {
                               shipment.updated_at,
                             )}
                           </p>
+
                         </div>
+
                       </div>
 
                       <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+
                     </div>
 
                   </Card>
+
                 </Link>
               );
             },
           )
         )}
+
       </div>
 
       {/* =================================================
@@ -1001,14 +1088,17 @@ function ShipmentsPage() {
 
         {loading ? (
           <div className="px-5 py-16 text-center">
+
             <Clock3 className="mx-auto size-9 animate-pulse text-muted-foreground" />
 
             <p className="mt-4 text-sm font-bold text-primary">
               جاري تحميل شحناتك...
             </p>
+
           </div>
         ) : error ? (
           <div className="px-5 py-16 text-center">
+
             <Package className="mx-auto size-10 text-red-500" />
 
             <p className="mt-4 text-sm font-bold text-red-600">
@@ -1018,28 +1108,26 @@ function ShipmentsPage() {
             <p className="mt-2 text-xs text-muted-foreground">
               {error}
             </p>
+
           </div>
-        ) : filteredShipments.length ===
-          0 ? (
+        ) : filteredShipments.length === 0 ? (
           <div className="px-5 py-16 text-center">
+
             <Package className="mx-auto size-10 text-muted-foreground" />
 
             <p className="mt-4 text-sm font-bold text-primary">
-              {shipments.length ===
-              0
+              {shipments.length === 0
                 ? "لا توجد شحنات حتى الآن"
                 : "لا توجد نتائج مطابقة"}
             </p>
 
             <p className="mt-2 text-xs text-muted-foreground">
-              {shipments.length ===
-              0
+              {shipments.length === 0
                 ? "عند إنشاء شحنة جديدة ستظهر هنا."
                 : "جرّب تغيير البحث أو فلتر الحالة."}
             </p>
 
-            {shipments.length ===
-              0 && (
+            {shipments.length === 0 && (
               <Link
                 to="/shipments/new"
                 className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
@@ -1048,6 +1136,7 @@ function ShipmentsPage() {
                 إرسال شحنة
               </Link>
             )}
+
           </div>
         ) : (
           <div className="w-full overflow-x-auto">
@@ -1117,7 +1206,6 @@ function ShipmentsPage() {
                         className="transition-colors hover:bg-muted/30"
                       >
 
-                        {/* رقم الشحنة */}
                         <td className="px-5 py-5 align-middle">
 
                           <Link
@@ -1127,6 +1215,7 @@ function ShipmentsPage() {
                             }}
                             className="block"
                           >
+
                             <p
                               className="whitespace-nowrap font-mono text-sm font-extrabold text-primary"
                               dir="ltr"
@@ -1145,11 +1234,11 @@ function ShipmentsPage() {
                                 shipment.created_at,
                               )}
                             </p>
+
                           </Link>
 
                         </td>
 
-                        {/* المستلم */}
                         <td className="px-5 py-5 align-middle">
 
                           <Link
@@ -1159,6 +1248,7 @@ function ShipmentsPage() {
                             }}
                             className="block min-w-[170px]"
                           >
+
                             <p className="break-words text-sm font-bold text-primary">
                               {
                                 shipment.receiver_name
@@ -1172,11 +1262,11 @@ function ShipmentsPage() {
                                 }
                               </p>
                             )}
+
                           </Link>
 
                         </td>
 
-                        {/* الهاتف */}
                         <td className="px-5 py-5 align-middle">
 
                           <Link
@@ -1194,7 +1284,6 @@ function ShipmentsPage() {
 
                         </td>
 
-                        {/* الرسوم */}
                         <td className="px-5 py-5 align-middle">
 
                           <Link
@@ -1241,7 +1330,6 @@ function ShipmentsPage() {
 
                         </td>
 
-                        {/* الدفع */}
                         <td className="px-5 py-5 align-middle">
 
                           <Link
@@ -1284,7 +1372,6 @@ function ShipmentsPage() {
 
                         </td>
 
-                        {/* التاريخ */}
                         <td className="px-5 py-5 align-middle">
 
                           <Link
@@ -1307,7 +1394,6 @@ function ShipmentsPage() {
 
                         </td>
 
-                        {/* الحالة */}
                         <td className="px-5 py-5 align-middle">
 
                           <Link

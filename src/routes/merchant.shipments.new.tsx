@@ -7,3 +7,4 @@ export const Route = createFileRoute('/merchant/shipments/new')({
 function RouteComponent() {
   return <div>Hello "/merchant/shipments/new"!</div>
 }
+

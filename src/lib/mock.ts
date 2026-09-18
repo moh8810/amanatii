@@ -91,3 +91,4 @@ export const notifications = [
   { title: "تم تسليم AMA-48277 للسائق", time: "اليوم ٩:١٥ ص" },
   { title: "تم استلام أمانتك AMN-1042 في المركز", time: "قبل يومين" },
 ];
+
